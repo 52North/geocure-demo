@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.7.2/css/bootstrap-slider.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="style.css" />
     <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <!-- https://github.com/azoletwork/leaflet-layer-opacity-control -->
     <script src="leaflet-layer-opacity-control.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.0.3/dist/leaflet.markercluster.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.7.2/bootstrap-slider.min.js"></script>
     <script src="app.js"></script>
 </head>
@@ -30,6 +32,8 @@
 
             <p>Click on the service you want to view:</p>
             <ul id="serviceslist"></ul>
+            
+            <p><em>Note: One of the feature sets to be loaded has a size of ca. 20MB, so it might take a while until it appears in the green box.</em></p>
         </div>
         
         <div id="footer">
