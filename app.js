@@ -1,84 +1,86 @@
 // geocure base url
-const BASEURL = 'http://colabis.dev.52north.org/geocure/services';
+const BASEURL = 'http://colabis.dev.52north.org/geocure';
 
 // global object that represents the Leaflet map
 var map;
-
+// global object to gather the basemaps for later addition to the map (layers control)
+var basemaps = {};
 
 function initService(id) {
+    // initialise map
+    initMap();
+    
     // get maps and features and handle them
     $.get($(this).data("href"), function(data) {
         $.get(data.capabilities.maps, addMaps);
         $.get(data.capabilities.features, addFeatures);
-        /*
-        // legacy code when capabilities was an array and not an object
-        data.capabilities.forEach(function(caplink) {
-            $.get(caplink, function(data){
-                if(data.hasOwnProperty('layers')) {
-                    addMaps(data);
-                }
-                else if(data.hasOwnProperty('features')) {
-                    addFeatures(data);
-                }
-            });
-        });*/
     });
-    
-    // initialise map
-    initMap();
 }
 
 function initMap() {
     // init map
     map = L.map('map', {
-        center: [52, 7.6],  // Münster yeah!
-        zoom: 13,
-        crs: L.CRS.EPSG4326  // important because API's data uses EPSG:4326
+        center: [51.049259, 13.73836], // Dresden center
+        zoom: 12,
+        // crs: L.CRS.EPSG4326   // changes Leaflet's CRS to EPSG:4326, might be useful for some purposes, but breaks OSM tiles
     });
 
-    // add basemap
-    /*
-    // standard OSM tiles - refuses to work with EPSG:4326 :/
-    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    // add standard OSM tiles as basemap - won't work with EPSG:4326
+    basemaps['OSM (Tiles)'] = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    */
+    }).addTo(map);  // set as default
     
-    // using WMS instead
-    /*L.tileLayer.wms('http://sg.geodatenzentrum.de/wms_webatlasde.light?', {
+    // WMS
+    basemaps['BKG GeoBasis-DE (WMS)'] = L.tileLayer.wms('http://sg.geodatenzentrum.de/wms_webatlasde.light?', {
         layers:'webatlasde.light',
         attribution: '&copy; GeoBasis-DE / <a href="http://www.bkg.bund.de">BKG</a> 2017'
-    }).addTo(map);*/
+    });
     
-    // Tile service that supports EPSG:4326
-    L.tileLayer('http://tiles.geoservice.dlr.de/service/wmts?layer=eoc%3Abasemap&tilematrixset=EPSG%3A4326&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A4326%3A{z}&TileCol={x}&TileRow={y}', {
+    /*
+    // Alternative when using EPSG:4326
+    basemaps.DLR = L.tileLayer('http://tiles.geoservice.dlr.de/service/wmts?layer=eoc%3Abasemap&tilematrixset=EPSG%3A4326&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A4326%3A{z}&TileCol={x}&TileRow={y}', {
         attribution: '&copy; <a href="https://geoservice.dlr.de/">DLR EOC Geoservice</a>'
-    }).addTo(map);
+    });
+    */
     
+    // "Clear" "basemap" in case one of the map's overlays is used as the actual basemap (i.e. urban-atlas-2006-dresden)
+    basemaps.none = L.rectangle([[-90,-180],[90,180]], {fill: false});
+
     // example marker
-    L.marker([52, 7.6]).addTo(map)
-        /*.bindPopup('Münster')
-        .openPopup()*/;
+    L.marker([51.049259, 13.73836]).addTo(map).bindPopup('Dresden city centre').openPopup();
 }
 
 function addMaps(data) {
     var overlays = {};
-    data.layers.forEach(function(layer) {
-        var imageUrl = layer.href;
-        var imageBounds = [[data.crs.northBoundLatitude, data.crs.westBoundLongitude], [data.crs.southBoundLatitude, data.crs.eastBoundLongitude]];
-        overlays[layer.title] = L.imageOverlay(imageUrl, imageBounds, {opacity:0.5});
-        //tried individual opacity sliders
-        //L.control.layerOpacity({ layer: overlays[layer.title]}).addTo(map);
-    });
-    // add layer control to map
-    L.control.layers(null, overlays).addTo(map);
-    // add opacity control (all layers together)
-    L.control.layerOpacity({layers: overlays}).addTo(map);
     
-    // another opacity plugin
-    /*var opacitySlider = new L.Control.opacitySlider();
-    map.addControl(opacitySlider);
-    opacitySlider.setOpacityLayer(overlays[0]);*/
+    // Show Dresden bbox (all maps except warning-shapes-fine are clipped to this bbox)
+    L.rectangle([[50.990421,13.63266],[51.105678,13.83316]], {color: "#ff7800", weight: 5, fill: false}).addTo(map);
+    
+    // loop through layers that the service provides
+    data.layers.forEach(function(layer) {
+        var params = '';
+        var imageBounds;
+        
+        switch(layer.title) {
+            case 'warning-shapes-fine':   // all of Germany
+                params = '&crs=EPSG:3857';  // set crs to EPSG:3857 so that the returned CRS object will have the same CRS as Leaflet
+                imageBounds = [[data.crs.northBoundLatitude, data.crs.westBoundLongitude], [data.crs.southBoundLatitude, data.crs.eastBoundLongitude]];
+                break;
+            default:   // Dresden
+                params = '&bbox=13.63266,50.990421,13.83316,51.105678';  // clip map to custom bbox
+                imageBounds = [[51.105678,13.63266],[50.990421,13.83316]];
+                break;
+        }
+        
+        // add map to overlays collection
+        var imageUrl = layer.href + params;
+        overlays[layer.title] = L.imageOverlay(imageUrl, imageBounds, {opacity:0.5});
+    });
+    
+    // add layer control to map
+    L.control.layers(basemaps, overlays).addTo(map);
+    // add opacity control (sets opacity of all layers together [no individual opacity])
+    L.control.layerOpacity({layers: overlays}).addTo(map);
 }
 
 function addFeatures(data) {
@@ -182,7 +184,7 @@ function addFeatures(data) {
 
 $(document).ready(function() {
     // get all services the RESTAPI provides and list them in the #serviceslist
-    $.get(BASEURL, function(services) {
+    $.get(BASEURL + '/services', function(services) {
         services.forEach(function(service) {
             $("#serviceslist").append($('<li>', { id: service.id, text: service.label, title: service.description }).data("href", service.href).click(initService));
         });
