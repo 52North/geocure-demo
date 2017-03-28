@@ -3,13 +3,10 @@ const BASEURL = 'http://colabis.dev.52north.org/geocure';
 
 // global object that represents the Leaflet map
 var map;
-// global object to gather the basemaps for later addition to the map (layers control)
-var basemaps = {};
+// global reference to layer control
+var layercontrol = {};
 
 function initService(id) {
-    // initialise map
-    initMap();
-    
     // get maps and features and handle them
     $.get($(this).data("href"), function(data) {
         $.get(data.capabilities.maps, addMaps);
@@ -24,33 +21,37 @@ function initMap() {
         zoom: 12,
         // crs: L.CRS.EPSG4326   // changes Leaflet's CRS to EPSG:4326, might be useful for some purposes, but breaks OSM tiles
     });
+    
+    // add layer control to map
+    layercontrol = L.control.layers().addTo(map).expand();
 
     // add standard OSM tiles as basemap - won't work with EPSG:4326
-    basemaps['OSM (Tiles)'] = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    layercontrol.addBaseLayer(L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);  // set as default
+    }).addTo(map), '[basemaps] OpenStreetMap (Tiles)');  // set as default
     
     // WMS
-    basemaps['BKG GeoBasis-DE (WMS)'] = L.tileLayer.wms('http://sg.geodatenzentrum.de/wms_webatlasde.light?', {
+    layercontrol.addBaseLayer(L.tileLayer.wms('http://sg.geodatenzentrum.de/wms_webatlasde.light?', {
         layers:'webatlasde.light',
         attribution: '&copy; GeoBasis-DE / <a href="http://www.bkg.bund.de">BKG</a> 2017'
-    });
+    }), '[basemaps] BKG GeoBasis-DE (WMS)');
     
     /*
     // Alternative when using EPSG:4326
-    basemaps.DLR = L.tileLayer('http://tiles.geoservice.dlr.de/service/wmts?layer=eoc%3Abasemap&tilematrixset=EPSG%3A4326&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A4326%3A{z}&TileCol={x}&TileRow={y}', {
+    layercontrol.addBaseLayer(L.tileLayer('http://tiles.geoservice.dlr.de/service/wmts?layer=eoc%3Abasemap&tilematrixset=EPSG%3A4326&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A4326%3A{z}&TileCol={x}&TileRow={y}', {
         attribution: '&copy; <a href="https://geoservice.dlr.de/">DLR EOC Geoservice</a>'
-    });
+    }), '[basemaps] DLR (Tiles via WMTS)');
     */
     
     // "Clear" "basemap" in case one of the map's overlays is used as the actual basemap (i.e. urban-atlas-2006-dresden)
-    basemaps.none = L.rectangle([[-90,-180],[90,180]], {fill: false});
+    layercontrol.addBaseLayer(L.rectangle([[-90,-180],[90,180]], {fill: false}), '[basemaps] none');
 
     // example marker
     L.marker([51.049259, 13.73836]).addTo(map).bindPopup('Dresden city centre').openPopup();
 }
 
 function addMaps(data) {
+    // collect overlays to pass them to the opacity slider later
     var overlays = {};
     
     // Show Dresden bbox (all maps except warning-shapes-fine are clipped to this bbox)
@@ -74,11 +75,11 @@ function addMaps(data) {
         
         // add map to overlays collection
         var imageUrl = layer.href + params;
-        overlays[layer.title] = L.imageOverlay(imageUrl, imageBounds, {opacity:0.5});
+        var newlayer = L.imageOverlay(imageUrl, imageBounds, {opacity:0.5});
+        overlays[layer.title] = newlayer;
+        layercontrol.addOverlay(newlayer, '[maps] ' + layer.title);
     });
     
-    // add layer control to map
-    L.control.layers(basemaps, overlays).addTo(map);
     // add opacity control (sets opacity of all layers together [no individual opacity])
     L.control.layerOpacity({layers: overlays}).addTo(map);
 }
@@ -174,8 +175,9 @@ function addFeatures(data) {
             var newlayer = L.geoJson(geojsonresponse, options);
             // cluster the markers if configured to do so
             if(cluster) { newlayer = L.markerClusterGroup().addLayer(newlayer); }
-            // add to map
+            // add to map and layer control
             newlayer.addTo(map);
+            layercontrol.addOverlay(newlayer, '[features] ' + layer.title);
             // send warning-shapes-fine layer to back because otherwise it blocks other objects from being clicked to see their popups
             if(layer.title == 'warning-shapes-fine') { newlayer.bringToBack(); }
         });        
@@ -189,4 +191,6 @@ $(document).ready(function() {
             $("#serviceslist").append($('<li>', { id: service.id, text: service.label, title: service.description }).data("href", service.href).click(initService));
         });
     });
+    // initialise map
+    initMap();
 });
