@@ -137,13 +137,20 @@ function addFeatures(data) {
                 break;
             
             case 'emmission-simulation-results':
+                // do nothing because that currently doesn't work for some server-side reason
+                return;
+                /*
                 L.rectangle([[51.086888,13.825706],[51.003874,13.765706]], {color: "red", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.003874,13.765706,51.086888,13.825706';
                 // no options/popup
                 cluster = true;  // cluster these markers because there are MANY (like 20,000+)
+                */
                 break;
                 
             case 'urban-atlas-2006-dresden':
+                // do nothing because that currently doesn't work either, for some other server-side reason
+                return;
+                /*
                 L.rectangle([[51.076888,13.706043],[51.086888,13.726043]], {color: "green", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.076888,13.706043,51.086888,13.726043';
                 options = {
@@ -151,13 +158,34 @@ function addFeatures(data) {
                         // color each feature randomly
                         return {
                             color: "#000000".replace(/0/g, ()=>(~~(Math.random()*16)).toString(16)),
-                            weight:2,
-                            fillOpacity:0.4
+                            weight: 2,
+                            fillOpacity: 0.4
                         };
                     },
                     filter: function(feature, layer) {
                         // Hide features that are huge
                         return parseFloat(feature.properties.shape_area) < 1000000;
+                    },
+                    onEachFeature: function (feature, layer) {
+                        // fancy popup once more
+                        var html = Object.keys(feature.properties).map((e)=>'<td>'+e+'</td><td>' + feature.properties[e] + '</td>').join('</tr><tr>');
+                        html = '<table border="1" style="border-collapse:collapse"><tr>'+html+'</tr></table>';
+                        layer.bindPopup(html);
+                    }
+                };
+                */
+                break;
+            
+            case 'street-cleaning':
+                L.rectangle([[51.086888,13.706043],[51.096888,13.726043]], {color: "purple", weight: 5, fill: false}).addTo(map);  // bbox
+                params = '?bbox=51.086888,13.706043,51.096888,13.726043';
+                options = {
+                    style: function (feature) {
+                        // color each feature randomly
+                        return {
+                            color: "#000000".replace(/0/g, ()=>(~~(Math.random()*16)).toString(16)),
+                            weight: 5
+                        };
                     },
                     onEachFeature: function (feature, layer) {
                         // fancy popup once more
