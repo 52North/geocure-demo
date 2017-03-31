@@ -20,13 +20,15 @@ body {
     width: 250px;
     display: flex;
     flex-direction: column;
-    padding: 5px;
+    padding-left: 5px;
+    padding-right: 10px;
 }
 
 #sidebar #content {
     flex: 1;
 }
 
+a,
 #sidebar #content ul li {
     cursor: pointer;
     color: dodgerblue;
