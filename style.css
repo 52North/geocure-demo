@@ -1,7 +1,14 @@
+html {
+    height: 100%;
+}
+
 body {
-    display:flex;
-    flex-direction:row;
-    font-family:sans-serif;
+    margin: 0;
+    padding: 8px;
+    height: calc(100% - 16px);
+    display: flex;
+    flex-direction: row;
+    font-family: sans-serif;
 }
 
 #map {
@@ -10,21 +17,22 @@ body {
 }
 
 #sidebar {
-    width:250px;
+    width: 250px;
     display: flex;
     flex-direction: column;
+    padding: 5px;
 }
 
 #sidebar #content {
-    flex:1;
+    flex: 1;
 }
 
 #sidebar #content ul li {
-    cursor:pointer;
-    color:dodgerblue;
+    cursor: pointer;
+    color: dodgerblue;
     text-decoration: underline;
 }
 
 #sidebar #footer {
-    text-align:center;
+    text-align: center;
 }
