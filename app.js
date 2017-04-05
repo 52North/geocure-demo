@@ -136,21 +136,14 @@ function addFeatures(data) {
                 };
                 break;
             
-            case 'emmission-simulation-results':
-                // do nothing because that currently doesn't work for some server-side reason
-                return;
-                /*
-                L.rectangle([[51.086888,13.825706],[51.003874,13.765706]], {color: "red", weight: 5, fill: false}).addTo(map);  // bbox
-                params = '?bbox=51.003874,13.765706,51.086888,13.825706';
+            case 'emission-simulation': // formerly known as 'emmission-simulation-results'
+                L.rectangle([[51.026888,13.825706],[51.003874,13.765706]], {color: "red", weight: 5, fill: false}).addTo(map);  // bbox
+                params = '?bbox=51.003874,13.765706,51.026888,13.825706';
                 // no options/popup
                 cluster = true;  // cluster these markers because there are MANY (like 20,000+)
-                */
                 break;
                 
             case 'urban-atlas-2006-dresden':
-                // do nothing because that currently doesn't work either, for some other server-side reason
-                return;
-                /*
                 L.rectangle([[51.076888,13.706043],[51.086888,13.726043]], {color: "green", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.076888,13.706043,51.086888,13.726043';
                 options = {
@@ -173,12 +166,11 @@ function addFeatures(data) {
                         layer.bindPopup(html);
                     }
                 };
-                */
                 break;
             
             case 'street-cleaning':
-                L.rectangle([[51.086888,13.706043],[51.096888,13.726043]], {color: "purple", weight: 5, fill: false}).addTo(map);  // bbox
-                params = '?bbox=51.086888,13.706043,51.096888,13.726043';
+                L.rectangle([[51.030888,13.716043],[51.040888,13.736043]], {color: "purple", weight: 5, fill: false}).addTo(map);  // bbox
+                params = '?bbox=51.030888,13.716043,51.040888,13.736043';
                 options = {
                     style: function (feature) {
                         // color each feature randomly
