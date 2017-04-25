@@ -6,14 +6,6 @@ var map;
 // global reference to layer control
 var layercontrol = {};
 
-function initService(id) {
-    // get maps and features and handle them
-    $.get($(this).data("href"), function(data) {
-        $.get(data.capabilities.maps, addMaps);
-        $.get(data.capabilities.features, addFeatures);
-    });
-}
-
 function initMap() {
     // init map
     map = L.map('map', {
@@ -43,11 +35,28 @@ function initMap() {
     }), '[basemaps] DLR (Tiles via WMTS)');
     */
     
-    // "Clear" "basemap" in case one of the map's overlays is used as the actual basemap (i.e. urban-atlas-2006-dresden)
+    // "Clear" "basemap" in case one of the map's overlays is used as the actual basemap (e.g. urban-atlas-2006-dresden)
     layercontrol.addBaseLayer(L.rectangle([[-90,-180],[90,180]], {fill: false}), '[basemaps] none');
 
     // example marker
     L.marker([51.049259, 13.73836]).addTo(map).bindPopup('Dresden city centre').openPopup();
+}
+
+function getServices() {
+    // get all services the RESTAPI provides and list them in the #serviceslist
+    $.get(BASEURL + '/services', function(services) {
+        services.forEach(function(service) {
+            $("#serviceslist").append($('<li>', { id: service.id, text: service.label, title: service.description }).data("href", service.href).click(initService));
+        });
+    });
+}
+
+function initService() {
+    // get maps and features and handle them
+    $.get($(this).data("href"), function(data) {
+        $.get(data.capabilities.maps, addMaps);
+        $.get(data.capabilities.features, addFeatures);
+    });
 }
 
 function addMaps(data) {
@@ -205,12 +214,8 @@ function addFeatures(data) {
 }
 
 $(document).ready(function() {
-    // get all services the RESTAPI provides and list them in the #serviceslist
-    $.get(BASEURL + '/services', function(services) {
-        services.forEach(function(service) {
-            $("#serviceslist").append($('<li>', { id: service.id, text: service.label, title: service.description }).data("href", service.href).click(initService));
-        });
-    });
+    // get services at endpoint and provide UI to choose one of them
+    getServices();
     // initialise map
     initMap();
 });
