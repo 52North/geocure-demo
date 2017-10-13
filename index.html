@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.7.2/css/bootstrap-slider.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.3/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="style.css" />
@@ -13,16 +14,23 @@
     <script src="leaflet-layer-opacity-control.js"></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.0.3/dist/leaflet.markercluster.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/9.7.2/bootstrap-slider.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="app.js"></script>
+    <script>
+
+
+
+    </script>
 </head>
-    
+
 <body>
+
     <div id="sidebar">
         <div id="header">
             <h1>Geocure REST API Demo Client</h1>
             <p>Using Leaflet, jQuery etc.</p>
         </div>
-        
+
         <div id="content">
             <!-- If the demo should be even more generic:
             <p>Enter the API's base URL and click 'Start' to load the services that are available through that endpoint</p>
@@ -32,17 +40,48 @@
 
             <p>Click on the service you want to view:</p>
             <ul id="serviceslist"></ul>
-            
+
             <p>The map on the right will then display the service's data.</p>
             <p>The control in the top right hand corner allows to choose between basemaps and to add/remove map overlays from the WMS and WFS. Upon initialisation, the vector features from the WFS are loaded automatically while the image overlays from the WMS are turned off.</p>
             <p><em>Note: Some of the feature sets are bigger than 1MB, and one is bigger than 10MB, so it might take a while until everything appears (the green box will take the longest).</em></p>
         </div>
-        
+
         <div id="footer">
             <p>Brought to you by <a href="http://52north.org/">52° North</a></p>
         </div>
     </div>
-    
+
     <div id="map"></div>
+
+
+
+
+
+
 </body>
+
+<!-- Modal -->
+<!-- Addapted from https://www.w3schools.com/bootstrap/bootstrap_modal.asp -->
+<div class="modal fade" id="myModal" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Modal Header</h4>
+      </div>
+      <div class="modal-body">
+        <pre id="json"></pre>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+
 </html>

@@ -38,7 +38,7 @@ function initMap() {
     */
 
     // "Clear" "basemap" in case one of the map's overlays is used as the actual basemap (e.g. urban-atlas-2006-dresden)
-    // layercontrol.addBaseLayer(L.rectangle([[-90,-180],[90,180]], {fill: false}), '[basemaps] none');
+    layercontrol.addBaseLayer(L.rectangle([[-90,-180],[90,180]], {fill: false}), '[basemaps] none');
 
     // example marker
     L.marker([51.049259, 13.73836]).addTo(map).bindPopup('Dresden city centre').openPopup();
@@ -66,7 +66,7 @@ function addMaps(data) {
     var overlays = {};
 
     // Show Dresden bbox (all maps except warning-shapes-fine are clipped to this bbox)
-  //  L.rectangle([[50.990421,13.63266],[51.105678,13.83316]], {color: "#ff7800", weight: 5, fill: false}).addTo(map);
+   L.rectangle([[50.990421,13.63266],[51.105678,13.83316]], {color: "#ff7800", weight: 5, fill: false}).addTo(map);
   //  L.rectangle([[50.990421,13.63266],[51.105678,13.83316]], {color: "#ff7800", fill: false}).addTo(map);
 
 
@@ -93,8 +93,54 @@ function addMaps(data) {
         // console.log(newlayer);
         // newlayer.on('click', function(d) {alert('I have been clicked ')});
         // newlayer.addTo(map);
-        newlayer.on('click', function(){alert('hey')});
-        console.log('Added event handler for ' + layer.title);
+        newlayer.on('click', requestMapInfo);
+
+
+        function requestMapInfo(event) {
+          var latlng = map.mouseEventToLatLng(event.originalEvent);
+          let requestUrl = BASEURL + '/services' + "/" + getServiceId(this) + "/map/info" + "?" + "layer=" + getClickedLayerName(this) + "&" + "x=" + getClickPositionOnoverlay(event).x + "&" + "y=" + getClickPositionOnoverlay(event).y;
+          console.log("RequestURL " + requestUrl);
+
+         let r1 = 'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/features/_c8b2d332_2019_4311_a600_eefe94eb6b54/data'
+        let r2 =  'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map/info?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1&x=502&y=330'
+        let r3 = 'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map'
+
+          // take the configured variables, get the data...
+          $.get(requestUrl , function(geojsonresponse) {
+            $('#myModal').modal()
+            document.getElementById("json").innerHTML = JSON.stringify(geojsonresponse, undefined, 2);
+              // alert('<div>' + JSON.stringify(geojsonresponse) + '</div>')
+              // // parse it
+              // var newlayer = L.geoJson(geojsonresponse, options);
+              // // cluster the markers if configured to do so
+              // if(cluster) { newlayer = L.markerClusterGroup().addLayer(newlayer); }
+              // // add to map and layer control
+              // newlayer.addTo(map);
+              // layercontrol.addOverlay(newlayer, '[features] ' + layer.title);
+              // // send warning-shapes-fine layer to back because otherwise it blocks other objects from being clicked to see their popups
+              // if(layer.title == 'warning-shapes-fine') { newlayer.bringToBack(); }
+          });
+
+
+          // $.getJSON(requestUrl).then(showMapInfoResult)
+        };
+
+        function showMapInfoResult(res) {
+          console.log(res)
+        }
+
+        function getClickedLayerName(event) {
+          return event._url.replace(/(h.*layer=)/g, "").replace(/(&.*)/g ,""); // using reqular expressions to get the layer name by removing not layer name elements
+        };
+
+        function getServiceId(event) {
+          return event._url.replace(/(.*\/services\/)/g, "").replace(/(\/map.*)/g, "");
+        };
+
+        function getClickPositionOnoverlay(event) {
+        return  map.mouseEventToLayerPoint(event.originalEvent);
+        }
+
         overlays[layer.title] = newlayer;
         layercontrol.addOverlay(newlayer, '[maps] ' + layer.title);
     });
@@ -159,14 +205,14 @@ function addFeatures(data) {
                 break;
 
             case 'emission-simulation': // formerly known as 'emmission-simulation-results'
-                // L.rectangle([[51.026888,13.825706],[51.003874,13.765706]], {color: "red", weight: 5, fill: false}).addTo(map);  // bbox
+                L.rectangle([[51.026888,13.825706],[51.003874,13.765706]], {color: "red", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.003874,13.765706,51.026888,13.825706';
                 // no options/popup
                 cluster = true;  // cluster these markers because there are MANY (like 20,000+)
                 break;
 
             case 'urban-atlas-2006-dresden':
-                // L.rectangle([[51.076888,13.706043],[51.086888,13.726043]], {color: "green", weight: 5, fill: false}).addTo(map);  // bbox
+                L.rectangle([[51.076888,13.706043],[51.086888,13.726043]], {color: "green", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.076888,13.706043,51.086888,13.726043';
                 options = {
                     style: function (feature) {
@@ -191,7 +237,7 @@ function addFeatures(data) {
                 break;
 
             case 'street-cleaning':
-                // L.rectangle([[51.030888,13.716043],[51.040888,13.736043]], {color: "purple", weight: 5, fill: false}).addTo(map);  // bbox
+                L.rectangle([[51.030888,13.716043],[51.040888,13.736043]], {color: "purple", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.030888,13.716043,51.040888,13.736043';
                 options = {
                     style: function (feature) {
