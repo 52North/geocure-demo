@@ -97,13 +97,17 @@ function addMaps(data) {
 
 
         function requestMapInfo(event) {
+          console.log('EVENT');
+          console.log(event);
+          console.log(event.target._map._size);
+          console.log('EVENT END');
           var latlng = map.mouseEventToLatLng(event.originalEvent);
-          let requestUrl = BASEURL + '/services' + "/" + getServiceId(this) + "/map/info" + "?" + "layer=" + getClickedLayerName(this) + "&" + "x=" + getClickPositionOnoverlay(event).x + "&" + "y=" + getClickPositionOnoverlay(event).y;
+          let requestUrl = BASEURL + '/services' + "/" + getServiceId(this) + "/map/info" + "?" + "layer=" + getClickedLayerName(this) + "&" + "x=" + getClickPositionOnoverlay(event).x + "&" + "y=" + getClickPositionOnoverlay(event).y + "&width=" + getMapWidth(event) + '&height=' + getMapHeight(event) + '&bbox=' + getBbox(event);
           console.log("RequestURL " + requestUrl);
 
          let r1 = 'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/features/_c8b2d332_2019_4311_a600_eefe94eb6b54/data'
-        let r2 =  'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map/info?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1&x=502&y=330'
-        let r3 = 'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map'
+         let r2 =  'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map/info?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1&x=502&y=330'
+         let r3 = 'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map'
 
           // take the configured variables, get the data...
           $.get(requestUrl , function(geojsonresponse) {
@@ -125,6 +129,25 @@ function addMaps(data) {
           // $.getJSON(requestUrl).then(showMapInfoResult)
         };
 
+        function getBbox(event) {
+          return '' + event.target._bounds._southWest.lng + ',' + event.target._bounds._southWest.lat + ',' + event.target._bounds._northEast.lng + ',' + event.target._bounds._northEast.lat;
+        }
+
+        function getMapWidth(event) {
+          // return  event.target._map._size.x
+          //  return event.originalEvent.layerX
+          // return event.target._image.width;
+          return event.target._image.naturalWidth;
+        }
+
+        function getMapHeight(event) {
+          // return  event.target._map._size.y
+          // return event.originalEvent.layerY
+          // return event.target._image.height;
+          return event.target._image.naturalHeight;
+
+        }
+
         function showMapInfoResult(res) {
           console.log(res)
         }
@@ -139,6 +162,11 @@ function addMaps(data) {
 
         function getClickPositionOnoverlay(event) {
         return  map.mouseEventToLayerPoint(event.originalEvent);
+        // return {
+        //   x: event.originalEvent.layerX,
+        //   y: event.originalEvent.layerY
+        // }
+
         }
 
         overlays[layer.title] = newlayer;
