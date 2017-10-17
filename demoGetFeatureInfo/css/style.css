@@ -1,13 +1,10 @@
 #mapCanvas {
-  width: 250px;
   display: table;
   margin: 0 auto;
+  margin-top: 20px;
   overflow: scroll;
   box-shadow: 10px 10px 5px grey;
   outline: black 3px solid;
-  margin-top: 10px;
-  width: 1326;
-  height: 936;
 }
 
 #outer {
