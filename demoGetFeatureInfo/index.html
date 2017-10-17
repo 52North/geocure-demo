@@ -9,16 +9,39 @@
 
   <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/css/bootstrap-select.min.css">
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.4/js/bootstrap-select.min.js"></script>
   <script src="js/app.js"></script>
   <script>
   </script>
 </head>
 
+<nav class="navbar navbar-toggleable-md navbar-inverse bg-inverse fixed-top">
+  <div>
+    <select class="selectpicker">
+      <option>Mustard</option>
+      <option>Ketchup</option>
+      <option>Relish</option>
+    </select>
+  </div>
+</nav>
+
+
+
+<div class="row">
+  <div class="col-12">
+    <div id="outer">
+      <div id='canvas-container'><canvas id="mapCanvas" height="1500" width="1500"></canvas></div>
+    </div>
+  </div>
+</div>
+
 <body>
 
-  <div id="outer">
-    <div id='canvas-container'><canvas id="mapCanvas" height="1500" width="1500"></canvas></div>
-  </div>
+
 
 </body>
 
