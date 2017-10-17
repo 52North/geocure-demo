@@ -1,23 +1,26 @@
-const host = 'http://127.0.0.1:8002/geocure';
-
+const host = 'http://127.0.0.1:8002/geocure'; // URL to geocure
+const service = '/services/colabis-geoserver'; // service, offered by geocure;
 
 window.onload = function() {
 
   getAvailableMaps()
     .then(addMapsToSelectOptions)
-    .then(addEventlistenerToSelect);
+    .then(addEventlistenerToSelect).catch(error => {alert('error: ' + error)});
 }
 
 
 function getAvailableMaps() {
   return new Promise((resolve, reject) => {
     try {
-      let availableMaps = host + '/services/colabis-geoserver/map'
+      // Construct url to request available maps from geocure
+      const availableMaps = host + service +'/map'
+      // Requesting available maps from geocure
       $.get(availableMaps, availaleMaps => {
         resolve(availaleMaps);
       }).fail(() => {
         throw "Error in requesting available maps."
-      })
+      });
+
     }
     catch(error) {
       reject(error)
@@ -93,7 +96,7 @@ function updateOnClickCanvasEvent(imageRequestURL) {
   return new Promise((resolve, reject) => {
     try {
 
-      const basisInfoURl = '/services/colabis-geoserver/map/info?';
+      const basisInfoURl = service + '/map/info?';
       let currentLayer = imageRequestURL.url.match(/layer=.*[^\/]/);
       let size = imageRequestURL.size;
 
