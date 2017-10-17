@@ -1,5 +1,10 @@
 window.onload = function() {
-  let dataURL = 'http://127.0.0.1:8002/geocure/services/colabis-geoserver/map/render?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1';
+
+  // Getting the width and height of the canvas. Used for requesting the image and the feature info.
+  let canvasheight = $('#mapCanvas').attr('height');
+  let canvaswidth = $('#mapCanvas').attr('width');
+
+  let dataURL = 'http://127.0.0.1:8002/geocure/services/colabis-geoserver/map/render?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1&width=' + canvaswidth + '&height=' + canvasheight;
 
   loadCanvas(dataURL);
 
@@ -12,17 +17,15 @@ window.onload = function() {
     imageObj.onload = function() {
       context.drawImage(this, 0, 0);
     };
-    console.log("nod adding image src");
     imageObj.src = dataURL;
 
   }
 
   $('#mapCanvas').on('click', function(event) {
-    console.log("adding click event");
     var x = event.offsetX;
     var y = event.offsetY;
-    
-    let requestUrl = 'http://127.0.0.1:8002/geocure/services/colabis-geoserver/map/info?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1&x=' + x + '&y=' + y;
+
+    let requestUrl = 'http://127.0.0.1:8002/geocure/services/colabis-geoserver/map/info?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1&x=' + x + '&y=' + y + '&width=' + canvaswidth + '&height=' + canvasheight;
 
     $.get(requestUrl, function(res) {
       $('#json').empty();
@@ -31,5 +34,4 @@ window.onload = function() {
     });
 
   });
-
 }
