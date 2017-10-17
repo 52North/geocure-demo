@@ -13,7 +13,9 @@ function initMap() {
         zoom: 12,
         // crs: L.CRS.EPSG4326   // changes Leaflet's CRS to EPSG:4326, might be useful for some purposes, but breaks OSM tiles
     });
-    
+
+
+
     // add layer control to map
     layercontrol = L.control.layers().addTo(map).expand();
 
@@ -21,20 +23,20 @@ function initMap() {
     layercontrol.addBaseLayer(L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     }).addTo(map), '[basemaps] OpenStreetMap (Tiles)');  // set as default
-    
+
     // WMS
     layercontrol.addBaseLayer(L.tileLayer.wms('http://sg.geodatenzentrum.de/wms_webatlasde.light?', {
         layers:'webatlasde.light',
         attribution: '&copy; GeoBasis-DE / <a href="http://www.bkg.bund.de">BKG</a> 2017'
     }), '[basemaps] BKG GeoBasis-DE (WMS)');
-    
+
     /*
     // Alternative when using EPSG:4326
     layercontrol.addBaseLayer(L.tileLayer('http://tiles.geoservice.dlr.de/service/wmts?layer=eoc%3Abasemap&tilematrixset=EPSG%3A4326&Service=WMTS&Request=GetTile&Version=1.0.0&Format=image%2Fpng&TileMatrix=EPSG%3A4326%3A{z}&TileCol={x}&TileRow={y}', {
         attribution: '&copy; <a href="https://geoservice.dlr.de/">DLR EOC Geoservice</a>'
     }), '[basemaps] DLR (Tiles via WMTS)');
     */
-    
+
     // "Clear" "basemap" in case one of the map's overlays is used as the actual basemap (e.g. urban-atlas-2006-dresden)
     layercontrol.addBaseLayer(L.rectangle([[-90,-180],[90,180]], {fill: false}), '[basemaps] none');
 
@@ -49,12 +51,12 @@ function getServices() {
             $("#serviceslist").append($('<li>', { id: service.id, text: service.label, title: service.description }).data("href", service.href).click(initService));
         });
     });
-}
+};
 
 function initService() {
     // get maps and features and handle them
     $.get($(this).data("href"), function(data) {
-        $.get(data.capabilities.maps, addMaps);
+        $.get(data.capabilities.map, addMaps);
         $.get(data.capabilities.features, addFeatures);
     });
 }
@@ -62,15 +64,18 @@ function initService() {
 function addMaps(data) {
     // collect overlays to pass them to the opacity slider later
     var overlays = {};
-    
+
     // Show Dresden bbox (all maps except warning-shapes-fine are clipped to this bbox)
-    L.rectangle([[50.990421,13.63266],[51.105678,13.83316]], {color: "#ff7800", weight: 5, fill: false}).addTo(map);
-    
+   L.rectangle([[50.990421,13.63266],[51.105678,13.83316]], {color: "#ff7800", weight: 5, fill: false}).addTo(map);
+  //  L.rectangle([[50.990421,13.63266],[51.105678,13.83316]], {color: "#ff7800", fill: false}).addTo(map);
+
+
     // loop through layers that the service provides
     data.layers.forEach(function(layer) {
         var params = '';
         var imageBounds;
-        
+
+        console.log(JSON.stringify(layer));
         switch(layer.title) {
             case 'warning-shapes-fine':   // all of Germany
                 params = '&crs=EPSG:3857';  // set crs to EPSG:3857 so that the returned CRS object will have the same CRS as Leaflet
@@ -81,26 +86,108 @@ function addMaps(data) {
                 imageBounds = [[51.105678,13.63266],[50.990421,13.83316]];
                 break;
         }
-        
+
         // add map to overlays collection
         var imageUrl = layer.href + params;
-        var newlayer = L.imageOverlay(imageUrl, imageBounds, {opacity:0.5});
+        var newlayer = L.imageOverlay(imageUrl, imageBounds, {opacity:0.5, interactive: true});
+        // console.log(newlayer);
+        // newlayer.on('click', function(d) {alert('I have been clicked ')});
+        // newlayer.addTo(map);
+        newlayer.on('click', requestMapInfo);
+
+
+        function requestMapInfo(event) {
+          console.log('EVENT');
+          console.log(event);
+          console.log(event.target._map._size);
+          console.log('EVENT END');
+          var latlng = map.mouseEventToLatLng(event.originalEvent);
+          let requestUrl = BASEURL + '/services' + "/" + getServiceId(this) + "/map/info" + "?" + "layer=" + getClickedLayerName(this) + "&" + "x=" + getClickPositionOnoverlay(event).x + "&" + "y=" + getClickPositionOnoverlay(event).y + "&width=" + getMapWidth(event) + '&height=' + getMapHeight(event) + '&bbox=' + getBbox(event);
+          console.log("RequestURL " + requestUrl);
+
+         let r1 = 'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/features/_c8b2d332_2019_4311_a600_eefe94eb6b54/data'
+         let r2 =  'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map/info?layer=ckan:_53fbae20_e2fb_4fd1_b5d6_c798e11b96d1&x=502&y=330'
+         let r3 = 'http://colabis.dev.52north.org/geocure/services/colabis-geoserver/map'
+
+          // take the configured variables, get the data...
+          $.get(requestUrl , function(geojsonresponse) {
+            $('#myModal').modal()
+            document.getElementById("json").innerHTML = JSON.stringify(geojsonresponse, undefined, 2);
+              // alert('<div>' + JSON.stringify(geojsonresponse) + '</div>')
+              // // parse it
+              // var newlayer = L.geoJson(geojsonresponse, options);
+              // // cluster the markers if configured to do so
+              // if(cluster) { newlayer = L.markerClusterGroup().addLayer(newlayer); }
+              // // add to map and layer control
+              // newlayer.addTo(map);
+              // layercontrol.addOverlay(newlayer, '[features] ' + layer.title);
+              // // send warning-shapes-fine layer to back because otherwise it blocks other objects from being clicked to see their popups
+              // if(layer.title == 'warning-shapes-fine') { newlayer.bringToBack(); }
+          });
+
+
+          // $.getJSON(requestUrl).then(showMapInfoResult)
+        };
+
+        function getBbox(event) {
+          return '' + event.target._bounds._southWest.lng + ',' + event.target._bounds._southWest.lat + ',' + event.target._bounds._northEast.lng + ',' + event.target._bounds._northEast.lat;
+        }
+
+        function getMapWidth(event) {
+          // return  event.target._map._size.x
+          //  return event.originalEvent.layerX
+          // return event.target._image.width;
+          return event.target._image.naturalWidth;
+        }
+
+        function getMapHeight(event) {
+          // return  event.target._map._size.y
+          // return event.originalEvent.layerY
+          // return event.target._image.height;
+          return event.target._image.naturalHeight;
+
+        }
+
+        function showMapInfoResult(res) {
+          console.log(res)
+        }
+
+        function getClickedLayerName(event) {
+          return event._url.replace(/(h.*layer=)/g, "").replace(/(&.*)/g ,""); // using reqular expressions to get the layer name by removing not layer name elements
+        };
+
+        function getServiceId(event) {
+          return event._url.replace(/(.*\/services\/)/g, "").replace(/(\/map.*)/g, "");
+        };
+
+        function getClickPositionOnoverlay(event) {
+        return  map.mouseEventToLayerPoint(event.originalEvent);
+        // return {
+        //   x: event.originalEvent.layerX,
+        //   y: event.originalEvent.layerY
+        // }
+
+        }
+
         overlays[layer.title] = newlayer;
         layercontrol.addOverlay(newlayer, '[maps] ' + layer.title);
     });
-    
+
     // add opacity control (sets opacity of all layers together [no individual opacity])
     L.control.layerOpacity({layers: overlays}).addTo(map);
 }
 
+
+
+
 function addFeatures(data) {
     // loop through feature sets that the service provides
-    data.features.forEach(function(layer) {        
+    data.features.forEach(function(layer) {
         // defaults
         var params = '';
         var options = {};
         var cluster = false;
-        
+
         switch(layer.title)
         {
             case 'warning-shapes-fine':
@@ -117,7 +204,7 @@ function addFeatures(data) {
                     }
                 };
                 break;
-                
+
             case 'Heavy Metal Samples':
                 // we collect all the timestamps in an array so that an external control could manage which to show when
                 //zeitpunkte = [];
@@ -144,14 +231,14 @@ function addFeatures(data) {
                     }
                 };
                 break;
-            
+
             case 'emission-simulation': // formerly known as 'emmission-simulation-results'
                 L.rectangle([[51.026888,13.825706],[51.003874,13.765706]], {color: "red", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.003874,13.765706,51.026888,13.825706';
                 // no options/popup
                 cluster = true;  // cluster these markers because there are MANY (like 20,000+)
                 break;
-                
+
             case 'urban-atlas-2006-dresden':
                 L.rectangle([[51.076888,13.706043],[51.086888,13.726043]], {color: "green", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.076888,13.706043,51.086888,13.726043';
@@ -176,7 +263,7 @@ function addFeatures(data) {
                     }
                 };
                 break;
-            
+
             case 'street-cleaning':
                 L.rectangle([[51.030888,13.716043],[51.040888,13.736043]], {color: "purple", weight: 5, fill: false}).addTo(map);  // bbox
                 params = '?bbox=51.030888,13.716043,51.040888,13.736043';
@@ -197,7 +284,7 @@ function addFeatures(data) {
                 };
                 break;
         } // end switch
-        
+
         // take the configured variables, get the data...
         $.get(layer.href + params, function(geojsonresponse) {
             // parse it
@@ -209,8 +296,8 @@ function addFeatures(data) {
             layercontrol.addOverlay(newlayer, '[features] ' + layer.title);
             // send warning-shapes-fine layer to back because otherwise it blocks other objects from being clicked to see their popups
             if(layer.title == 'warning-shapes-fine') { newlayer.bringToBack(); }
-        });        
-    }); 
+        });
+    });
 }
 
 $(document).ready(function() {
